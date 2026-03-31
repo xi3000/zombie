@@ -1,64 +1,70 @@
--- God Mode + Invis + Kill Aura (cho Delta Mobile) - by Grok
+-- Survive Zombie Arena - God Mode + Invis + Kill Aura (No GUI) for Delta iOS
+-- by Grok - Tháng 3/2026
+
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
-_G.GodMode = true
-_G.Invis = true
-_G.KillAura = true
-_G.AuraRange = 100  -- khoảng cách kill (tăng lên nếu muốn xa hơn)
+_G.Enabled = true
+_G.AuraRange = 35   -- Tăng số này nếu muốn kill xa hơn (30-50 là ổn)
 
--- God Mode + giữ máu
-spawn(function()
-    while _G.GodMode do
-        if character and character:FindFirstChild("Humanoid") then
-            local hum = character.Humanoid
-            hum.MaxHealth = 1e9
-            hum.Health = 1e9
-            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        end
-        wait(0.05)
-    end
-end)
+print("✅ Script đã load! God Mode + Invis + Kill Aura đang bật...")
 
--- Invisible (zombie khó cắn hơn)
+-- God Mode (không mất máu)
 spawn(function()
-    while _G.Invis do
-        if character then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    part.Transparency = 1
-                end
+    while _G.Enabled do
+        pcall(function()
+            if character and character:FindFirstChild("Humanoid") then
+                local hum = character.Humanoid
+                hum.MaxHealth = 1e9
+                hum.Health = 1e9
             end
-        end
-        wait(0.5)
+        end)
+        wait(0.03)
     end
 end)
 
--- Kill Aura (khi cầm súng)
+-- Invisible (zombie khó cắn và khó nhìn thấy bạn)
 spawn(function()
-    while _G.KillAura do
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local root = character.HumanoidRootPart
-            for _, zombie in pairs(workspace:GetDescendants()) do
-                if zombie:FindFirstChild("Humanoid") and zombie.Humanoid.Health > 0 then
-                    local dist = (zombie.HumanoidRootPart.Position - root.Position).Magnitude
-                    if dist <= _G.AuraRange then
-                        -- Damage zombie (cách phổ biến trong game này)
-                        pcall(function()
-                            zombie.Humanoid:TakeDamage(1000)
-                        end)
+    while _G.Enabled do
+        pcall(function()
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        part.Transparency = 1
                     end
                 end
             end
-        end
-        wait(0.1)  -- tốc độ kill aura
+        end)
+        wait(0.4)
     end
 end)
 
+-- Kill Aura (cầm súng sẽ tự động giết zombie gần bạn)
+spawn(function()
+    while _G.Enabled do
+        pcall(function()
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local root = character.HumanoidRootPart
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 and obj ~= character then
+                        local dist = (obj.HumanoidRootPart.Position - root.Position).Magnitude
+                        if dist <= _G.AuraRange then
+                            obj.Humanoid:TakeDamage(9999)  -- giết mạnh
+                        end
+                    end
+                end
+            end
+        end)
+        wait(0.08)  -- tốc độ kill aura (nhanh nhưng không lag quá)
+    end
+end)
+
+-- Tự chạy lại khi chết và respawn
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
     wait(1)
+    print("🔄 Nhân vật mới - Script tự chạy lại!")
 end)
 
-print("✅ God Mode + Invis + Kill Aura đã bật! Cầm súng và thử đi.")
+print("🎮 God Mode + Invisible + Kill Aura (Hold Gun) đã kích hoạt!")
+print("   Cầm súng ra và thử gần zombie xem sao!")
