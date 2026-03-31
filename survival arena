@@ -1,0 +1,64 @@
+-- God Mode + Invis + Kill Aura (cho Delta Mobile) - by Grok
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+_G.GodMode = true
+_G.Invis = true
+_G.KillAura = true
+_G.AuraRange = 100  -- khoảng cách kill (tăng lên nếu muốn xa hơn)
+
+-- God Mode + giữ máu
+spawn(function()
+    while _G.GodMode do
+        if character and character:FindFirstChild("Humanoid") then
+            local hum = character.Humanoid
+            hum.MaxHealth = 1e9
+            hum.Health = 1e9
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        end
+        wait(0.05)
+    end
+end)
+
+-- Invisible (zombie khó cắn hơn)
+spawn(function()
+    while _G.Invis do
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.Transparency = 1
+                end
+            end
+        end
+        wait(0.5)
+    end
+end)
+
+-- Kill Aura (khi cầm súng)
+spawn(function()
+    while _G.KillAura do
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local root = character.HumanoidRootPart
+            for _, zombie in pairs(workspace:GetDescendants()) do
+                if zombie:FindFirstChild("Humanoid") and zombie.Humanoid.Health > 0 then
+                    local dist = (zombie.HumanoidRootPart.Position - root.Position).Magnitude
+                    if dist <= _G.AuraRange then
+                        -- Damage zombie (cách phổ biến trong game này)
+                        pcall(function()
+                            zombie.Humanoid:TakeDamage(1000)
+                        end)
+                    end
+                end
+            end
+        end
+        wait(0.1)  -- tốc độ kill aura
+    end
+end)
+
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    wait(1)
+end)
+
+print("✅ God Mode + Invis + Kill Aura đã bật! Cầm súng và thử đi.")
